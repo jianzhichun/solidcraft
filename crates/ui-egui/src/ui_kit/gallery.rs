@@ -1080,6 +1080,7 @@ const ELEMENTS: &[Element] = &[
                 label: "ui.general",
                 handle: "gallery:page",
                 scroll: true,
+                hidden: never_hidden,
                 draw: |ui, _: &mut ()| {
                     text(ui, "General", Text::Inline);
                 },

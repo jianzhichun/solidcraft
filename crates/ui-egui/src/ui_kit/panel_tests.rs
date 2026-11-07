@@ -836,6 +836,7 @@ fn window_pages_have_shared_metrics_callbacks_and_a_pinned_left_footer_action() 
                 label: "ui.general",
                 handle: "test:page:general",
                 scroll: true,
+                hidden: never_hidden,
                 draw: |ui, state| {
                     *state = 1;
                     text(ui, "General", Text::Inline);
@@ -847,6 +848,7 @@ fn window_pages_have_shared_metrics_callbacks_and_a_pinned_left_footer_action() 
                 label: "ui.navigation",
                 handle: "test:page:navigation",
                 scroll: true,
+                hidden: never_hidden,
                 draw: |ui, state| {
                     *state = 2;
                     text(ui, "Navigation", Text::Inline);
@@ -925,6 +927,7 @@ fn page_window_is_as_opaque_as_every_other_window_in_both_themes() {
             label: "ui.general",
             handle: "test:page:general",
             scroll: true,
+            hidden: never_hidden,
             draw: |ui, _: &mut ()| {
                 text(ui, "General", Text::Inline);
             },

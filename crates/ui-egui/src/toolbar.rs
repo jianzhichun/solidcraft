@@ -239,7 +239,14 @@ fn report_rect(bar: Rect, captions: f32, tabs_start: f32, label_width: f32, vers
     // Icon, text and a margin that mirrors the icon side.
     let full = REPORT_TEXT_X + label_width + 11.0;
     let labeled = right - CLUSTER_BUTTONS - tabs_start >= 216.0 + full;
-    let width = if labeled { full } else { 28.0 };
+    // A host that takes defect reports itself shows no button: the cluster's neighbours close up to where it stood.
+    let width = if !crate::brand::own_report_flow() {
+        0.0
+    } else if labeled {
+        full
+    } else {
+        28.0
+    };
     (Rect::from_min_size(pos2(right - width, bar.center().y - 13.0), vec2(width, 26.0)), labeled)
 }
 
@@ -4090,6 +4097,20 @@ mod header_report_tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn a_host_that_takes_reports_leaves_no_gap_where_the_report_button_stood() {
+        let bar = Rect::from_min_size(pos2(0.0, 0.0), vec2(1000.0, 34.0));
+        crate::brand::reset();
+        let (shown, _) = report_rect(bar, 0.0, 354.0, 80.0, 40.0);
+        crate::brand::set_hidden(["report"]);
+        let (hidden, _) = report_rect(bar, 0.0, 354.0, 80.0, 40.0);
+        crate::brand::reset();
+        assert_eq!(hidden.width(), 0.0, "the button takes no room");
+        assert_eq!(hidden.right(), shown.right(), "the version keeps its place at the right");
+        assert_eq!(help_x(hidden), hidden.left() - 18.0);
+        assert!(help_x(hidden) > help_x(shown), "Help moves right to where Report a bug was: {hidden:?} {shown:?}");
     }
 
     #[test]

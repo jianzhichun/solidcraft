@@ -17,8 +17,8 @@ struct Custom {
 }
 
 thread_local! {
-    /// The host reports defects itself: the app bar button, the Help item and the crash window's Report button are not shown.
-    static HOST_REPORTS: Cell<bool> = const { Cell::new(false) };
+    /// Entry points the host does not offer (see [`HIDDEN`] for the names they may have). Empty by default: SolidCraft shows everything.
+    static HIDDEN_NOW: RefCell<std::collections::BTreeSet<String>> = const { RefCell::new(std::collections::BTreeSet::new()) };
     static CUSTOM: RefCell<Option<Custom>> = const { RefCell::new(None) };
     /// Bumped by every `set`/`reset`, so a texture made from an earlier logo is never drawn again.
     static GENERATION: Cell<u64> = const { Cell::new(0) };
@@ -35,19 +35,28 @@ pub fn set(name: &str, logo_png: Option<&[u8]>) {
     GENERATION.with(|g| g.set(g.get() + 1));
 }
 
-/// Say whether the host collects defect reports itself (then SolidCraft's own GitHub report flow is hidden).
-pub fn set_host_reports(on: bool) {
-    HOST_REPORTS.with(|h| h.set(on));
+/// The entry points a host may hide, by name. Anything else a host lists is ignored, so a typo hides nothing.
+pub const HIDDEN: &[&str] = &["report", "settings.assistant", "settings.plugins"];
+
+/// Hide these entry points (names from [`HIDDEN`]); replaces any earlier list.
+pub fn set_hidden<'a>(names: impl IntoIterator<Item = &'a str>) {
+    let known: std::collections::BTreeSet<String> = names.into_iter().filter(|n| HIDDEN.contains(n)).map(str::to_string).collect();
+    HIDDEN_NOW.with(|h| *h.borrow_mut() = known);
 }
 
-/// True while SolidCraft's own report flow (GitHub draft) is offered: always, unless the host takes reports itself.
+/// Whether the host hides the entry point `name`.
+pub fn is_hidden(name: &str) -> bool {
+    HIDDEN_NOW.with(|h| h.borrow().contains(name))
+}
+
+/// SolidCraft's own defect-report flow (a GitHub draft) is offered unless the host takes reports itself.
 pub fn own_report_flow() -> bool {
-    !HOST_REPORTS.with(Cell::get)
+    !is_hidden("report")
 }
 
 /// Back to SolidCraft's own name and mark.
 pub fn reset() {
-    HOST_REPORTS.with(|h| h.set(false));
+    HIDDEN_NOW.with(|h| h.borrow_mut().clear());
     CUSTOM.with(|c| *c.borrow_mut() = None);
     GENERATION.with(|g| g.set(g.get() + 1));
 }

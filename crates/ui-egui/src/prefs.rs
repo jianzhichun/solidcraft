@@ -335,6 +335,15 @@ pub const PAGE_ASSISTANT: usize = 10;
 pub const PAGE_PLUGINS: usize = 11;
 /// What Preferences accepts for `parameter_list_rows`: `parameters.complete` answers at most 200.
 pub const PARAMETER_LIST_ROWS: std::ops::RangeInclusive<u16> = 5..=200;
+/// A host that does not offer these pages (`brand::HIDDEN`): the sidebar skips them, their indexes stay.
+fn hide_assistant_page() -> bool {
+    crate::brand::is_hidden("settings.assistant")
+}
+
+fn hide_plugins_page() -> bool {
+    crate::brand::is_hidden("settings.plugins")
+}
+
 const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
     ui_kit::WindowPage {
         icon: "settings",
@@ -343,6 +352,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:General",
         scroll: true,
         draw: window_page::<PAGE_GENERAL>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_palette",
@@ -351,6 +361,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Appearance",
         scroll: true,
         draw: window_page::<PAGE_APPEARANCE>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_monitor",
@@ -359,6 +370,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Layout",
         scroll: true,
         draw: window_page::<PAGE_LAYOUT>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_monitor",
@@ -367,6 +379,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Graphics",
         scroll: true,
         draw: window_page::<PAGE_GRAPHICS>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "ws_design",
@@ -375,6 +388,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Design",
         scroll: true,
         draw: window_page::<PAGE_DESIGN>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "sketch",
@@ -383,6 +397,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Sketch",
         scroll: true,
         draw: window_page::<PAGE_SKETCH>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings",
@@ -391,6 +406,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Tools",
         scroll: true,
         draw: window_page::<PAGE_TOOLS>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_mouse",
@@ -399,6 +415,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Navigation",
         scroll: true,
         draw: window_page::<PAGE_NAVIGATION>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_mouse",
@@ -407,6 +424,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:3D mouse",
         scroll: true,
         draw: window_page::<PAGE_MOUSE3D>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "settings_keyboard",
@@ -415,6 +433,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Shortcuts",
         scroll: false,
         draw: window_page::<PAGE_SHORTCUTS>,
+        hidden: ui_kit::never_hidden,
     },
     ui_kit::WindowPage {
         icon: "assistant",
@@ -423,6 +442,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Assistant",
         scroll: true,
         draw: window_page::<PAGE_ASSISTANT>,
+        hidden: hide_assistant_page,
     },
     ui_kit::WindowPage {
         icon: "settings_plug",
@@ -431,6 +451,7 @@ const WINDOW_PAGES: &[ui_kit::WindowPage<SolveApp>] = &[
         handle: "prefs:page:Plugins",
         scroll: true,
         draw: window_page::<PAGE_PLUGINS>,
+        hidden: hide_plugins_page,
     },
 ];
 
@@ -4924,6 +4945,34 @@ mod tests {
             h.frames(2);
         }
         panic!("{handle} never came into view");
+    }
+
+    #[test]
+    fn a_host_can_hide_the_assistant_and_plugins_pages_without_moving_any_other_page() {
+        let mut h = crate::scenario::Harness::new();
+        h.app.home.open = false;
+        h.call("ui.resize", json!({"width":1300,"height":900}));
+        open_at(&mut h.app, PAGE_GENERAL);
+        crate::brand::reset();
+        h.frames(6);
+        // each sidebar entry publishes its page handle only while it is drawn
+        let offered = |name: &str| crate::scenario::rect_of(&format!("prefs:page:{name}")).is_some();
+        assert!(offered("Assistant") && offered("Plugins"), "SolidCraft offers every page by default");
+        crate::brand::set_hidden(["settings.assistant", "settings.plugins"]);
+        crate::scenario::clear_handles();
+        h.frames(6);
+        assert!(!offered("Assistant") && !offered("Plugins"), "the host's pages are not in the sidebar");
+        assert!(offered("Shortcuts") && offered("General"), "the other pages stay");
+        assert_eq!(
+            (PAGE_ASSISTANT, PAGE_PLUGINS, WINDOW_PAGES.len()),
+            (10, 11, 12),
+            "indexes do not move: settings files and scenarios keep their meaning"
+        );
+        crate::brand::set_hidden(["settings.nothing"]);
+        crate::scenario::clear_handles();
+        h.frames(6);
+        assert!(offered("Assistant"), "an unknown name hides nothing");
+        crate::brand::reset();
     }
 
     #[test]

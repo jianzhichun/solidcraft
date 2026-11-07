@@ -84,7 +84,7 @@ pub(crate) use navigation::*;
 pub(crate) use navigation_menu::*;
 pub(crate) use navigation_settings::*;
 pub(crate) use panel::{
-    ComputeStatus, FeatureOptions, InspectorAction, Panel, Part, WindowPage, WorkspaceOptions, inspector_header, panel_header_hover,
+    ComputeStatus, FeatureOptions, InspectorAction, Panel, Part, WindowPage, WorkspaceOptions, inspector_header, never_hidden, panel_header_hover,
 };
 pub use panel::{DialogButtons, Window};
 #[cfg(test)]

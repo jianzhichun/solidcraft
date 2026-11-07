@@ -1283,6 +1283,13 @@ pub(crate) struct WindowPage<S> {
     pub handle: &'static str,
     pub scroll: bool,
     pub draw: fn(&mut Ui, &mut S),
+    /// A host that does not offer this page: the sidebar skips it; indexes, search and resets keep counting it.
+    pub hidden: fn() -> bool,
+}
+
+/// The default of [`WindowPage::hidden`]: every page is offered.
+pub(crate) fn never_hidden() -> bool {
+    false
 }
 
 #[cfg(test)]
@@ -1338,6 +1345,9 @@ fn page_list_sized<S>(
         });
         egui::ScrollArea::vertical().id_salt("window_pages").max_height(list.height()).show(ui, |ui| {
             for (index, page) in pages.iter().enumerate() {
+                if (page.hidden)() {
+                    continue;
+                }
                 if let Some(group) = page.group {
                     ui.add_space(t.space_8);
                     let (rect, _) = ui.allocate_exact_size(vec2(dimension(ui.available_width()), t.space_24), egui::Sense::hover());

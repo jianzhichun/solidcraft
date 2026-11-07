@@ -19,8 +19,8 @@ const LOADING_ID: &str = "solidcraft_loading";
 pub struct Request {
     pub name: String,
     pub logo: Option<String>,
-    /// `reports: "host"`: the hosting page collects defect reports itself, so SolidCraft's GitHub report flow is hidden.
-    pub host_reports: bool,
+    /// `hide: ["report", ...]`: entry points the hosting page does not offer (names in `brand::HIDDEN`; unknown names are ignored).
+    pub hide: Vec<String>,
 }
 
 /// `logo` must resolve to the page's own origin: a brand never pulls an image from elsewhere.
@@ -36,7 +36,14 @@ fn request(window: &web_sys::Window) -> Option<Request> {
     let text = |k: &str| Reflect::get(&obj, &JsValue::from_str(k)).ok().and_then(|v| v.as_string()).filter(|s| !s.trim().is_empty());
     let name = text("name")?;
     let page = window.location().href().ok()?;
-    Some(Request { name, logo: text("logo").and_then(|l| same_origin(&page, &l)), host_reports: text("reports").as_deref() == Some("host") })
+    Some(Request { name, logo: text("logo").and_then(|l| same_origin(&page, &l)), hide: names(&obj, "hide") })
+}
+
+/// The strings of a JS array property; anything else is an empty list.
+#[cfg(target_arch = "wasm32")]
+fn names(obj: &JsValue, key: &str) -> Vec<String> {
+    let Ok(list) = Reflect::get(obj, &JsValue::from_str(key)) else { return Vec::new() };
+    js_sys::Array::from(&list).iter().filter_map(|v| v.as_string()).collect()
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -58,7 +65,7 @@ pub async fn apply(window: &web_sys::Window, document: &web_sys::Document) -> bo
         None => None,
     };
     solidcraft_ui_egui::brand::set(&req.name, png.as_deref());
-    solidcraft_ui_egui::brand::set_host_reports(req.host_reports);
+    solidcraft_ui_egui::brand::set_hidden(req.hide.iter().map(String::as_str));
     let name = solidcraft_ui_egui::brand::name();
     document.set_title(&name);
     if let Ok(Some(loading)) = document.query_selector(&format!("#{LOADING_ID} img")) {
