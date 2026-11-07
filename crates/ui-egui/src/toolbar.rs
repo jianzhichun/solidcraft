@@ -318,18 +318,27 @@ pub fn app_bar(app: &mut SolveApp, ui: &mut egui::Ui) {
         // (viewBox 357 x 412). Same 20 px height and centre as the old block.
         {
             let c = pos2(left + 20.0, r.center().y);
-            crate::icons::glyphs::brand_mark(ui.painter(), c);
+            if !crate::brand::paint_logo(ui.ctx(), ui.painter(), c, 20.0) {
+                crate::icons::glyphs::brand_mark(ui.painter(), c);
+            }
         }
+        let name = crate::brand::name();
         if !compact_actions {
             ui.painter().text(
                 pos2(left + 36.0, r.center().y),
                 Align2::LEFT_CENTER,
-                "SolidCraft",
+                &name,
                 crate::fonts::semibold(t.font_heading),
                 t.app_bar_text,
             );
         }
-        let mut x = left + if compact_actions { 56.0 } else { 128.0 };
+        // SolidCraft's own name fits before the Home button; a longer one from a host moves the controls right.
+        let name_end = if crate::brand::is_custom() {
+            36.0 + crate::brand::name_width(ui.painter(), crate::fonts::semibold(t.font_heading), t.app_bar_text) + 20.0
+        } else {
+            0.0
+        };
+        let mut x = left + if compact_actions { 56.0 } else { 128.0_f32.max(name_end) };
         let home = Rect::from_center_size(pos2(x - 4.0, r.center().y), vec2(32.0, 32.0));
         let idle = !app.file_load.busy();
         let home_response = ui.interact(home, ui.id().with("appbar_home"), if idle { Sense::click() } else { Sense::hover() });

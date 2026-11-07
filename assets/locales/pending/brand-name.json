@@ -1,0 +1,7 @@
+{
+  "de": { "brand.about": "Über {name}" },
+  "en": { "brand.about": "About {name}" },
+  "ja": { "brand.about": "{name} について" },
+  "ko": { "brand.about": "{name} 정보" },
+  "zh": { "brand.about": "关于 {name}" }
+}

@@ -9,6 +9,8 @@
 #[cfg(target_arch = "wasm32")]
 mod api;
 #[cfg(any(target_arch = "wasm32", test))]
+mod brand;
+#[cfg(any(target_arch = "wasm32", test))]
 mod disk;
 #[cfg(target_arch = "wasm32")]
 mod easyprint;
@@ -896,6 +898,7 @@ mod web {
             leave_tab_switching_to_browser(&window);
             keep_ctrl_w_for_the_design(&window);
             let Some(document) = window.document() else { return };
+            crate::brand::apply(&window, &document).await;
             let Some(canvas) = document.get_element_by_id(CANVAS_ID).and_then(|e| e.dyn_into::<web_sys::HtmlCanvasElement>().ok()) else {
                 log::error!("missing <canvas id=\"{CANVAS_ID}\">");
                 return;

@@ -741,6 +741,7 @@ fn navigation(app: &SolveApp, ui: &mut egui::Ui, action: &mut Option<FileAction>
     } else {
         format!("{} ({})", app.tr_label("Recover"), app.recoverable.len())
     };
+    let about = crate::brand::about_title();
     let nav = [
         ("home:start", app.tr_label("Start"), String::new(), Some(Section::Start), true, FileAction::Section(Section::Start)),
         ("home:new", app.tr_label("New"), format!("{primary}N"), None, true, FileAction::New("preferred")),
@@ -753,7 +754,7 @@ fn navigation(app: &SolveApp, ui: &mut egui::Ui, action: &mut Option<FileAction>
         ("home:settings", app.tr("home.settings"), format!("{primary},"), None, true, FileAction::Settings),
         ("home:shortcuts", app.tr("home.shortcuts"), String::new(), None, true, FileAction::Shortcuts),
         ("home:crashes", app.tr("home.crashes"), String::new(), None, true, FileAction::Crashes),
-        ("home:about", app.tr_label("About SolidCraft"), String::new(), None, true, FileAction::About),
+        ("home:about", about.as_str(), String::new(), None, true, FileAction::About),
     ];
     for (index, (id, label, key, section, enabled, picked)) in nav.into_iter().enumerate() {
         if index == 4 || index == 8 {
