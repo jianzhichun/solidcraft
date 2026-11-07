@@ -15,6 +15,8 @@ pub const PREFIX: &str = "/disk/";
 pub const OPFS_PREFIX: &str = "/opfs/";
 /// Paths written here are handed to the user as downloads.
 pub const DOWNLOADS_PREFIX: &str = "/downloads/";
+/// Files a user dropped or picked for a command to read; they stay in memory.
+pub const UPLOAD_PREFIX: &str = "/upload/";
 
 /// Where what a command wrote to an engine path goes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

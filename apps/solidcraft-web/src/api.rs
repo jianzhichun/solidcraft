@@ -69,6 +69,9 @@ impl Api {
                 Closure::<dyn Fn(JsValue) -> js_sys::Promise>::new(move |value: JsValue| inspect.request("document.inspect", params(&value)))
                     .into_js_value(),
             ),
+            // An embedding host takes the files commands wrote to its computer's paths, and hands in the ones they read.
+            ("takeHostWrites", Closure::<dyn Fn() -> js_sys::Array>::new(host_writes).into_js_value()),
+            ("putFile", Closure::<dyn Fn(String, js_sys::Uint8Array) -> Result<(), JsValue>>::new(put_file).into_js_value()),
         ] {
             js_sys::Reflect::set(&object, &name.into(), &function)?;
         }
@@ -128,4 +131,25 @@ impl Api {
             self.ctx.request_repaint_after(Duration::from_millis(16));
         }
     }
+}
+
+/// `[{path, bytes}]`: what commands wrote to the host computer's paths since the last call (`host_files`).
+fn host_writes() -> js_sys::Array {
+    let out = js_sys::Array::new();
+    for (path, bytes) in crate::host_files::take() {
+        let item = js_sys::Object::new();
+        let _ = js_sys::Reflect::set(&item, &"path".into(), &path.into());
+        let _ = js_sys::Reflect::set(&item, &"bytes".into(), &js_sys::Uint8Array::from(bytes.as_slice()));
+        out.push(&item);
+    }
+    out
+}
+
+/// A host file a command is about to read, put where the engine reads it.
+fn put_file(path: String, bytes: js_sys::Uint8Array) -> Result<(), JsValue> {
+    if let Some(refusal) = crate::host_files::put_refusal(&path, bytes.length() as usize) {
+        return Err(error(&refusal));
+    }
+    solidcraft_engine::io::vfs::insert(&path, bytes.to_vec());
+    Ok(())
 }

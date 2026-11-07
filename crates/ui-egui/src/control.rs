@@ -1309,7 +1309,8 @@ fn dispatch(app: &mut SolveApp, ctx: &egui::Context, method: &str, p: &Value) ->
             // What drew it (gpu, gpu-software or cpu), and the warning a CPU render carries.
             let (renderer, warning) = (png.renderer, solidcraft_engine::capture::warning(png.renderer));
             match s("path") {
-                Some(path) => match vfs::check(path).and_then(|()| std::fs::write(path, &png.bytes)) {
+                // Through `vfs` like every other save: the disk natively, memory in the browser (where the host takes it).
+                Some(path) => match vfs::check(path).and_then(|()| vfs::write(path, &png.bytes)) {
                     Ok(()) => ok(json!({"path": path, "bytes": png.bytes.len(), "renderer": renderer, "warning": warning})),
                     Err(e) => err(e),
                 },

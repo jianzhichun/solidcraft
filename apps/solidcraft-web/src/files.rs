@@ -23,7 +23,7 @@ pub const OPFS: &str = disk::OPFS_PREFIX;
 /// Paths written here are handed to the user as downloads.
 pub const DOWNLOADS: &str = disk::DOWNLOADS_PREFIX;
 /// Files brought in from the computer.
-pub const UPLOAD: &str = "/upload/";
+pub const UPLOAD: &str = disk::UPLOAD_PREFIX;
 /// The autosave of unsaved work (in OPFS: `recovery.sc` and `recovery.json`), named with
 /// `solidcraft_engine::io::DESIGN_EXT`.
 const RECOVERY: &str = "recovery.sc";
@@ -319,7 +319,7 @@ pub fn start(files: &Rc<Files>) {
     });
 }
 
-/// Store what commands wrote: OPFS paths into OPFS, download paths as downloads.
+/// Store what commands wrote: OPFS paths into OPFS, download paths as downloads, host paths for an embedding host.
 pub fn flush(files: &Rc<Files>) {
     for (path, bytes) in vfs::take_writes() {
         match disk::route(&path) {
@@ -347,7 +347,10 @@ pub fn flush(files: &Rc<Files>) {
                     files.say(format!("{name}: {e}"), true);
                 }
             }
-            disk::WriteTo::Memory => {}
+            // A path of the host's computer, when this build runs embedded: kept for the host to take.
+            disk::WriteTo::Memory => {
+                crate::host_files::keep(&path, bytes);
+            }
         }
     }
 }
