@@ -70,11 +70,7 @@ pub fn is_custom() -> bool {
 /// "About <name>": SolidCraft's own catalog entry (all languages) under its own name, the sentence template otherwise.
 pub fn about_title() -> String {
     let name = name();
-    if name == DEFAULT_NAME {
-        crate::i18n::tr_label("About SolidCraft").to_string()
-    } else {
-        crate::i18n::format("brand.about", &[("name", &name)])
-    }
+    if name == DEFAULT_NAME { crate::i18n::tr_label("About SolidCraft").to_string() } else { crate::i18n::format("brand.about", &[("name", &name)]) }
 }
 
 /// Draw the host's logo about `height` px tall, centred on `c`. False when there is none: draw the default mark.

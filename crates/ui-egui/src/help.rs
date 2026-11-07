@@ -175,10 +175,8 @@ fn about(app: &mut SolveApp, ctx: &egui::Context) {
         return;
     }
     let title = crate::brand::about_title();
-    let (closed, action) = ui_kit::Window::new(egui::Id::new("sc_about"), "help", &title)
-        .cards(2.0)
-        .actions("", "Close", None)
-        .show(ctx, true, |ui| {
+    let (closed, action) =
+        ui_kit::Window::new(egui::Id::new("sc_about"), "help", &title).cards(2.0).actions("", "Close", None).show(ctx, true, |ui| {
             ui_kit::text(
                 ui,
                 &crate::i18n::format("help.build", &[("version", VERSION), ("commit", COMMIT), ("date", BUILD_DATE)]),
