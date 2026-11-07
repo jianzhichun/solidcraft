@@ -44,9 +44,10 @@ fn the_logo_is_drawn_only_when_the_host_gave_one() {
     let mut drawn = Vec::new();
     for logo in [None, Some(png(8, 4))] {
         brand::set("SolidZ", logo.as_deref());
-        let _ = ctx.run_ui(egui::RawInput::default(), |ui| {
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
             drawn.push(brand::paint_logo(ui.ctx(), ui.painter(), egui::pos2(20.0, 17.0), 20.0));
         });
+        out.textures_delta.clear();
     }
     assert_eq!(drawn, [false, true]);
     brand::reset();
