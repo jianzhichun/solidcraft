@@ -118,7 +118,9 @@ pub fn show(app: &mut SolveApp, ctx: &egui::Context) {
                                     ui_kit::icon_label_button(ui, crate::i18n::tr("crash.copy_path"), "copy", true, false)
                                         .clicked()
                                         .then(|| ctx.copy_text(r.path.clone()));
-                                    if ui_kit::icon_label_button(ui, crate::i18n::tr("crash.report"), "bug_report", true, false).clicked() {
+                                    if crate::brand::own_report_flow()
+                                        && ui_kit::icon_label_button(ui, crate::i18n::tr("crash.report"), "bug_report", true, false).clicked()
+                                    {
                                         report = Some(r.id.clone());
                                     }
                                 });

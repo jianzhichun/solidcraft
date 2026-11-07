@@ -17,6 +17,8 @@ struct Custom {
 }
 
 thread_local! {
+    /// The host reports defects itself: the app bar button, the Help item and the crash window's Report button are not shown.
+    static HOST_REPORTS: Cell<bool> = const { Cell::new(false) };
     static CUSTOM: RefCell<Option<Custom>> = const { RefCell::new(None) };
     /// Bumped by every `set`/`reset`, so a texture made from an earlier logo is never drawn again.
     static GENERATION: Cell<u64> = const { Cell::new(0) };
@@ -33,8 +35,19 @@ pub fn set(name: &str, logo_png: Option<&[u8]>) {
     GENERATION.with(|g| g.set(g.get() + 1));
 }
 
+/// Say whether the host collects defect reports itself (then SolidCraft's own GitHub report flow is hidden).
+pub fn set_host_reports(on: bool) {
+    HOST_REPORTS.with(|h| h.set(on));
+}
+
+/// True while SolidCraft's own report flow (GitHub draft) is offered: always, unless the host takes reports itself.
+pub fn own_report_flow() -> bool {
+    !HOST_REPORTS.with(Cell::get)
+}
+
 /// Back to SolidCraft's own name and mark.
 pub fn reset() {
+    HOST_REPORTS.with(|h| h.set(false));
     CUSTOM.with(|c| *c.borrow_mut() = None);
     GENERATION.with(|g| g.set(g.get() + 1));
 }

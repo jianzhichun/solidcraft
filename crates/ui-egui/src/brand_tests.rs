@@ -52,3 +52,13 @@ fn the_logo_is_drawn_only_when_the_host_gave_one() {
     assert_eq!(drawn, [false, true]);
     brand::reset();
 }
+
+#[test]
+fn a_host_that_takes_reports_hides_the_github_flow_and_reset_brings_it_back() {
+    brand::reset();
+    assert!(brand::own_report_flow(), "SolidCraft offers its own report flow by default");
+    brand::set_host_reports(true);
+    assert!(!brand::own_report_flow());
+    brand::reset();
+    assert!(brand::own_report_flow());
+}
