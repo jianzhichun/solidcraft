@@ -37,10 +37,31 @@
   <link data-trunk rel="copy-file" href="../../assets/icons/app/linux/exports/hicolor/32x32/apps/io.tangencylabs.solidcraft.png" data-target-path="icons/32x32" />
   <link data-trunk rel="copy-file" href="../../assets/icons/app/linux/exports/hicolor/256x256/apps/io.tangencylabs.solidcraft.png" data-target-path="icons/256x256" />
   <link data-trunk rel="copy-file" href="../../assets/icons/app/linux/exports/hicolor/512x512/apps/io.tangencylabs.solidcraft.png" data-target-path="icons/512x512" />
+  <script>
+    // A hosting page's loading screen (window.solidcraftBrand.loading, set before this page loads; see src/brand.rs): false or "none"
+    // shows none from the first frame; { image, alt } shows that same-origin image (below); unset keeps SolidCraft's animation.
+    (function () {
+      var l = window.solidcraftBrand && window.solidcraftBrand.loading;
+      if (l === false || l === "none") document.documentElement.classList.add("solidcraft-loading-none");
+    })();
+  </script>
 </head>
 <body>
   <canvas id="solidcraft_canvas"></canvas>
   <div id="solidcraft_loading" role="status"><img src="loading-logo.svg" alt=""><span class="sr-only">Loading SolidCraft&hellip;</span></div>
+  <script>
+    // The hosting page's own loading image and product name, before the image loads (see the script in <head>).
+    (function () {
+      var b = window.solidcraftBrand || {}, l = b.loading, el = document.getElementById("solidcraft_loading");
+      if (l && typeof l === "object" && typeof l.image === "string") {
+        try {
+          var u = new URL(l.image, location.href), img = el.querySelector("img");
+          if (u.origin === location.origin && (u.protocol === "http:" || u.protocol === "https:")) { img.src = u.href; img.alt = typeof l.alt === "string" ? l.alt : ""; }
+        } catch (e) {}
+      }
+      if (typeof b.name === "string" && b.name.trim()) el.querySelector(".sr-only").textContent = "Loading " + b.name.trim() + "\u2026";
+    })();
+  </script>
   <script>
     // Offline use and updates (sw.js; written into release builds by `cargo xtask web-offline`).
     if ("serviceWorker" in navigator) {

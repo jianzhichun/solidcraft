@@ -1,5 +1,7 @@
 //! The product name and logo a hosting page gives this build (`window.solidcraftBrand = { name, logo }`, set before the
 //! app starts; `logo` is the address of a PNG on the same origin). Without it nothing changes: SolidCraft, its own mark.
+//! The loading screen is chosen before the app starts, by `index.html` itself (`loading`: unset keeps the animation, `false`
+//! or `"none"` shows none, `{ image, alt }` a same-origin image of the host's): this module leaves it alone.
 
 #[cfg(target_arch = "wasm32")]
 use js_sys::{Reflect, Uint8Array};
@@ -10,8 +12,6 @@ use wasm_bindgen_futures::JsFuture;
 
 #[cfg(target_arch = "wasm32")]
 const KEY: &str = "solidcraftBrand";
-#[cfg(target_arch = "wasm32")]
-const LOADING_ID: &str = "solidcraft_loading";
 
 /// What the page asked for.
 #[cfg(target_arch = "wasm32")]
@@ -56,7 +56,7 @@ async fn fetch_png(window: &web_sys::Window, address: &str) -> Option<Vec<u8>> {
     Some(Uint8Array::new(&buffer).to_vec())
 }
 
-/// Apply the page's brand to the UI, the tab title and the loading screen. Returns whether one was given.
+/// Apply the page's brand to the UI and the tab title. Returns whether one was given.
 #[cfg(target_arch = "wasm32")]
 pub async fn apply(window: &web_sys::Window, document: &web_sys::Document) -> bool {
     let Some(req) = request(window) else { return false };
@@ -68,20 +68,6 @@ pub async fn apply(window: &web_sys::Window, document: &web_sys::Document) -> bo
     solidcraft_ui_egui::brand::set_hidden(req.hide.iter().map(String::as_str));
     let name = solidcraft_ui_egui::brand::name();
     document.set_title(&name);
-    if let Ok(Some(loading)) = document.query_selector(&format!("#{LOADING_ID} img")) {
-        match (&req.logo, &png) {
-            (Some(address), Some(_)) => {
-                let _ = loading.set_attribute("src", address);
-            }
-            // The default animation is SolidCraft's own mark: a host without a logo gets no animated one.
-            _ => {
-                let _ = loading.set_attribute("hidden", "");
-            }
-        }
-    }
-    if let Ok(Some(label)) = document.query_selector(&format!("#{LOADING_ID} .sr-only")) {
-        label.set_text_content(Some(&format!("Loading {name}\u{2026}")));
-    }
     true
 }
 

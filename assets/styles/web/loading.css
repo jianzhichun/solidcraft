@@ -3,5 +3,7 @@
     #solidcraft_loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
       color: #4a5060; font: 14px system-ui, sans-serif; background: #e8ebf0; z-index: 10; transition: opacity 300ms ease; }
     #solidcraft_loading.done { opacity: 0; pointer-events: none; }
+    /* A hosting page that asked for no loading screen (window.solidcraftBrand.loading: false or "none"). */
+    .solidcraft-loading-none #solidcraft_loading { display: none; }
     #solidcraft_loading img { width: min(60vmin, 360px); height: auto; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

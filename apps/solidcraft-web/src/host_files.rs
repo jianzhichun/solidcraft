@@ -93,7 +93,7 @@ mod tests {
         assert!(keep("/h/a.png", vec![1]) && keep("/h/a.png", vec![2]) && !keep("/opfs/x", vec![3]));
         assert_eq!(take(), vec![("/h/a.png".to_string(), vec![2])]);
         assert!(take().is_empty());
-        assert_eq!(put_refusal("/upload/x.step", 1).is_some(), true);
+        assert!(put_refusal("/upload/x.step", 1).is_some());
         assert!(put_refusal("/h/x.step", MAX_PUT_BYTES + 1).is_some() && put_refusal("/h/x.step", 10).is_none());
     }
 }
